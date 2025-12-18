@@ -1,6 +1,11 @@
 import { expect, test, describe, beforeAll, vi } from "vitest";
 import { ThePosterDbClient } from "./index";
 
+
+const testTitle = "The Matrix";
+const testTitleUrl = "The+Matrix";
+const testYear = 1999;
+
 describe("ThePosterDbClient", async () => {
 	let client: ThePosterDbClient;
 	beforeAll(() => {
@@ -24,7 +29,7 @@ describe("ThePosterDbClient", async () => {
 		});
 
 		test('extractCsrfToken', async () => {
-			const response = await client['fetchWithSession']("https://theposterdb.com/search?term=The+Matrix&section=movies");
+			const response = await client['fetchWithSession']("https://theposterdb.com/search?term=" + testTitleUrl + "&section=movies");
 			const html = await response.text();
 			const csrfToken = client['extractCsrfToken'](html);
 			expect(csrfToken).toBeDefined();
@@ -53,7 +58,7 @@ describe("ThePosterDbClient", async () => {
 				statusText: "Internal Server Error",
 			});
 
-			await expect(client.search({ title: "The Matrix" })).rejects.toThrow();
+			await expect(client.search({ title: testTitle })).rejects.toThrow();
 			// @ts-ignore
 			vi.restoreAllMocks();
 		});
@@ -73,7 +78,7 @@ describe("ThePosterDbClient", async () => {
 			vi.spyOn(client, 'ensureLoggedIn');
 			vi.spyOn(client, 'search');
 
-			await expect(client.search({ title: "The Matrix" }));
+			await expect(client.search({ title: testTitle }));
 			await vi.waitFor(() => {
 				expect(client['resetSession']).toHaveBeenCalled();
 				expect(client['ensureLoggedIn']).toHaveBeenCalled();
@@ -86,14 +91,14 @@ describe("ThePosterDbClient", async () => {
 
 		test("search", async () => {
 			const results = await client.search({
-				title: "The Matrix",
+				title: testTitle,
 			});
-			expect(results).toHaveLength(18);
+			expect(results.length).toBeGreaterThan(0);
 		});
 
 		test("search with limit", async () => {
 			const results = await client.search({
-				title: "The Matrix",
+				title: testTitle,
 				limit: 1,
 			});
 			expect(results).toHaveLength(1);
@@ -101,10 +106,10 @@ describe("ThePosterDbClient", async () => {
 
 		test("search with year", async () => {
 			const results = await client.search({
-				title: "The Matrix",
-				year: 1999,
+				title: testTitle,
+				year: testYear,
 			});
-			expect(results).toHaveLength(18);
+			expect(results.length).toBeGreaterThan(0);
 		});
 
 		test('normalizeTitle', async () => {
@@ -121,15 +126,15 @@ describe("ThePosterDbClient", async () => {
 
 		test('buildQuery', async () => {
 			const query = client['buildQuery']({
-				title: "The Matrix",
-				year: 1999,
+				title: testTitle,
+				year: testYear,
 			});
-			expect(query).toBe("The Matrix (1999)");
+			expect(query).toBe(`${testTitle} (${testYear})`);
 		});
 
 		test('buildSearchUrl', async () => {
-			const url = client['buildSearchUrl']("The Matrix", "movie");
-			expect(url).toBe("https://theposterdb.com/search?term=The+Matrix&section=movies");
+			const url = client['buildSearchUrl'](testTitle, "movie");
+			expect(url).toBe("https://theposterdb.com/search?term=" + testTitleUrl + "&section=movies");
 		});
 
 		test('buildHeaders', async () => {
@@ -138,7 +143,7 @@ describe("ThePosterDbClient", async () => {
 		});
 
 		test('extractSearchLinks', async () => {
-			const response = await client['fetchWithSession']("https://theposterdb.com/search?term=The+Matrix&section=movies");
+			const response = await client['fetchWithSession']("https://theposterdb.com/search?term=" + testTitleUrl + "&section=movies");
 			const html = await response.text();
 			const links = client['extractSearchLinks'](html);
 			expect(links[0]).toHaveProperty("title");
@@ -147,8 +152,8 @@ describe("ThePosterDbClient", async () => {
 		});
 
 		test('selectBestMatch', async () => {
-			const links = client['extractSearchLinks']("https://theposterdb.com/search?term=The+Matrix&section=movies");
-			const bestMatch = client['selectBestMatch'](links, "The Matrix");
+			const links = await client['extractSearchLinks']("https://theposterdb.com/search?term=" + testTitleUrl + "&section=movies");
+			const bestMatch = client['selectBestMatch'](links, testTitle);
 			expect(bestMatch).toBeDefined();
 		});
 

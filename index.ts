@@ -43,6 +43,7 @@ export interface ThePosterDbPoster {
 	id: string;
 	url: string;
 	viewUrl: string;
+	optimizedUrl: string;
 	title: string;
 	uploader?: string;
 	likes?: number;
@@ -420,6 +421,7 @@ export class ThePosterDbClient {
 		const $ = load(html);
 		const selector = "a.bg-transparent.border-0.text-white[href]";
 		const posters: ThePosterDbPoster[] = [];
+		// const posterId = posterPageUrl.split("/").pop();
 
 		$(selector)
 			.slice(0, limit)
@@ -439,10 +441,22 @@ export class ThePosterDbClient {
 				const uploader =
 					link.find('[data-role="uploader"]').text().trim() || undefined;
 
+
+
+				const x = $(".hovereffect.rounded-poster").eq(index);
+				const picture = $(x).find('picture').first();
+				const source = $(picture).find('source').filter((_, element) => {
+					return $(element).attr('type') === 'image/jpeg';
+				}).first();
+
+				const optimizedUrl = source?.attr('srcset') || '';
+
+
 				posters.push({
 					id: (index + 1).toString(),
 					url: absoluteUrl,
 					viewUrl: absoluteUrl.replace("/download", "/view"),
+					optimizedUrl,
 					title,
 					uploader,
 					likes: Number.isNaN(likes) ? undefined : likes,

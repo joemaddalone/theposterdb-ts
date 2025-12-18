@@ -45,6 +45,7 @@ console.log(posters);
     title: "The Matrix (1999)",
     url: "https://theposterdb.com/api/assets/...",
     viewUrl: "https://theposterdb.com/poster/...",
+    optimizedUrl: "https://theposterdb.com/poster/...",
     uploader: "User123",
     likes: 42
   },
