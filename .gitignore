@@ -1,0 +1,11 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# Test
+coverage
+.env
+
+.DS_Store
